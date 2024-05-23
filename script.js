@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function loadPosts() {
     const posts = JSON.parse(localStorage.getItem("posts") || "[]");
     const content = document.getElementById("content");
-    content.innerHTML = "<h2>Home</h2><p>Welcome to your thoughts. Here you can see all your posts.</p>";
+    content.innerHTML = "<h2>Home</h2><p>Welcome to Celestial Chronicle, where stars align and thoughts take flight. I hope you're having a luminous day amidst the cosmic tapestry.</p>";
     posts.forEach(post => {
         const postElement = document.createElement("div");
         postElement.className = "post";
