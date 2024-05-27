@@ -112,6 +112,7 @@ form input[type="submit"]:hover {
 }
 
 .post .profile-img {
+    flex-shrink: 0;
     width: 50px;
     height: 50px;
     margin-right: 15px;
@@ -129,4 +130,33 @@ button {
 
 button:hover {
     background-color: #ff7f7f;
+}
+
+.post-content {
+    position: relative;
+    overflow: hidden;
+    max-height: 100px;
+    line-height: 1.2em;
+}
+
+.post-content.expanded {
+    max-height: none;
+}
+
+.view-more {
+    color: #ffb6c1;
+    cursor: pointer;
+    text-decoration: underline;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.reactions {
+    margin-top: 10px;
+}
+
+.reactions span {
+    margin-right: 10px;
+    cursor: pointer;
+    font-size: 1.2em;
 }

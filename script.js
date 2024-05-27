@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const path = window.location.pathname;
 
     if (path.endsWith("index.html")) {
+        document.getElementById("sortOrder").addEventListener("change", loadPosts);
         loadPosts();
     } else if (path.endsWith("post.html")) {
         document.getElementById("postForm").addEventListener("submit", (event) => {
@@ -24,9 +25,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function loadPosts() {
     const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    const sortOrder = document.getElementById("sortOrder").value;
+
+    if (sortOrder === "newest") {
+        posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else if (sortOrder === "oldest") {
+        posts.sort((a, b) => new Date(a.date) - new Date(b.date));
+    } else if (sortOrder === "alphabetical") {
+        posts.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
     const content = document.getElementById("content");
-    content.innerHTML = "<h2>Home</h2><p>Welcome to Celestial Chronicle, where stars align and thoughts take flight. I hope you're having a luminous day amidst the cosmic tapestry.</p>";
-    posts.forEach(post => {
+    content.innerHTML = `
+        <h2>Home</h2>
+        <p>Welcome to Celestial Chronicle, where stars align and thoughts take flight. I hope you're having a luminous day amidst the cosmic tapestry.</p>
+        <label for="sortOrder">Sort By:</label>
+        <select id="sortOrder">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="alphabetical">Alphabetical</option>
+        </select>
+    `;
+
+    posts.forEach((post, index) => {
         const postElement = document.createElement("div");
         postElement.className = "post";
         postElement.innerHTML = `
@@ -35,19 +56,68 @@ function loadPosts() {
             </div>
             <div>
                 <h3>${post.title}</h3>
-                <p>${post.content}</p>
+                <p class="post-content">${post.content.substring(0, 500)}</p>
+                ${post.content.length > 500 ? `<span class="view-more" data-index="${index}">View More</span>` : ''}
+                <div class="reactions">
+                    <span class="heart" data-index="${index}">❤️</span>
+                    <span class="thumbs-up" data-index="${index}">👍</span>
+                    <span class="thumbs-down" data-index="${index}">👎</span>
+                </div>
+                <button class="delete-post" data-index="${index}">Delete</button>
             </div>
         `;
         content.appendChild(postElement);
     });
+
+    document.querySelectorAll('.view-more').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const index = event.target.getAttribute('data-index');
+            const postContent = document.querySelectorAll('.post-content')[index];
+            postContent.textContent = posts[index].content;
+            postContent.classList.add('expanded');
+            event.target.remove();
+        });
+    });
+
+    document.querySelectorAll('.delete-post').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const index = event.target.getAttribute('data-index');
+            deletePost(index);
+        });
+    });
+
+    document.querySelectorAll('.heart').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const index = event.target.getAttribute('data-index');
+            addToFavorites(index);
+        });
+    });
+
+    document.getElementById("sortOrder").value = sortOrder;
 }
 
 function savePost(title, postContent) {
     const posts = JSON.parse(localStorage.getItem("posts") || "[]");
-    posts.push({ title, content: postContent });
+    const date = new Date().toISOString();
+    posts.push({ title, content: postContent, date });
     localStorage.setItem("posts", JSON.stringify(posts));
     alert("Post saved!");
     window.location.href = "index.html";
+}
+
+function deletePost(index) {
+    const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    posts.splice(index, 1);
+    localStorage.setItem("posts", JSON.stringify(posts));
+    loadPosts();
+}
+
+function addToFavorites(index) {
+    const posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    favorites.push(posts[index]);
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+    alert("Post added to favorites!");
 }
 
 function saveProfile() {
@@ -95,6 +165,8 @@ function saveProfile() {
 
 function loadProfile() {
     const profile = JSON.parse(localStorage.getItem("profile"));
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
     if (profile) {
         document.getElementById("displayName").textContent = `Name: ${profile.name}`;
         document.getElementById("displayPronouns").textContent = `Pronouns: ${profile.pronouns}`;
@@ -111,6 +183,13 @@ function loadProfile() {
         img.alt = "Profile Picture";
         imgContainer.appendChild(img);
         document.getElementById("profileDisplay").prepend(imgContainer);
+
+        const favoritePosts = document.getElementById("favoritePosts");
+        favorites.forEach((post) => {
+            const li = document.createElement("li");
+            li.textContent = post.title;
+            favoritePosts.appendChild(li);
+        });
     }
 }
 
